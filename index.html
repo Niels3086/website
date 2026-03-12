@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Niels Bal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: url('IMG_7673.JPEG') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .home {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .profile-photo {
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .home h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #222;
+        }
+
+        .home p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-bottom: 2rem;
+            color: #555;
+        }
+
+        .panels {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .panel-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
+
+        .panel-nav span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+        }
+
+        .panel-nav span.active {
+            background: #4a90e2;
+        }
+
+        .panel-container {
+            position: relative;
+            height: calc(100vh - 100px);
+            overflow: hidden;
+        }
+
+        .panel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            padding: 1rem;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .timeline {
+            height: 100%;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background: #4a90e2;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -1px;
+        }
+
+        .timeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 2rem;
+        }
+
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4a90e2;
+            top: 15px;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+
+        .timeline-item:nth-child(odd)::before {
+            right: -6px;
+        }
+
+        .timeline-item:nth-child(even)::before {
+            left: -6px;
+        }
+
+        .timeline-content {
+            padding: 20px;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-content h3 {
+            margin-bottom: 5px;
+            color: #4a90e2;
+        }
+
+        .timeline-content p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .timeline-item.current .timeline-content {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .activities, .work, .publications, .courses {
+            height: 100%;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .activities-container, .work-container, .publications-container, .courses-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .activity-item, .work-item, .publication-item, .course-item {
+            cursor: pointer;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .activity-header, .work-header, .publication-header, .course-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-content, .work-content, .publication-content, .course-content {
+            display: none;
+            padding: 1rem;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .activity-item.expanded .activity-content,
+        .work-item.expanded .work-content,
+        .publication-item.expanded .publication-content,
+        .course-item.expanded .course-content {
+            display: block;
+        }
+
+        @media screen and (max-width: 768px) {
+            .timeline-item {
+                width: 100%;
+                padding-left: 30px;
+                padding-right: 30px;
+            }
+            .timeline-item::before {
+                left: 20px;
+            }
+            .timeline-item:nth-child(even) {
+                left: 0;
+            }
+            .timeline-item:nth-child(even)::before {
+                left: 20px;
+            }
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666; /* Slightly lighter for the animation */
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+
+        .social-links a:hover {
+            color: #4a90e2; /* Your accent color */
+            transform: translateY(-3px); /* Lifts the icon up slightly */
+        }
+
+        .doi-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            color: #4a90e2;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .doi-link:hover {
+            color: #2a5aa6;
+        }
+
+        .doi-icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .activity-image {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .activity-item.expanded .activity-image {
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .activity-image {
+                max-width: 100%;
+            }
+        }
+
+        .lightbox-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .activity-image {
+            width: 100%;
+            max-width: 400px;
+            margin-top: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .lightbox-overlay.active {
+            display: flex;
+        }
+
+        .lightbox-content img {
+            animation: zoomIn 0.3s ease;
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.8); }
+            to { transform: scale(1); }
+        }
+
+        .panel-nav {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-btn {
+            flex: 1;
+            padding: 0.8rem 0;
+            background: transparent;
+            border: none;
+            color: #999;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            outline: none;
+        }
+
+        .panel-btn.active {
+            color: #4a90e2;
+            font-weight: 500;
+        }
+
+        .panel-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #4a90e2;
+            transition: width 0.3s ease;
+        }
+
+        .panel-btn.active::after {
+            width: 100%;
+        }
+
+        .panel-btn:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+
+        .panel-btn:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+
+        .home {
+            text-align: center;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-pic-container {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            height: 500px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            margin-bottom: 2rem;
+        }
+
+        /* picture */
+
+        .profile-pic-wrapper {
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            overflow: hidden;
+
+            border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+
+            position: relative;
+            transition: transform 0.6s ease;
+        }
+
+        /* image */
+
+        .profile-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+
+        /* dots */
+
+        .profile-dots {
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+
+            transform: translate(-50%, -50%);
+
+            font-size: 3rem;
+            color: rgba(255,255,255,0.85);
+
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        /* bio */
+
+        .profile-bio {
+            position: absolute;
+            left: 60%;
+            width: 40%;
+
+            opacity: 0;
+            transform: translateX(40px);
+
+            transition: opacity 0.5s ease, transform 0.5s ease;
+
+            text-align: left;
+        }
+
+        /* hover */
+
+        .profile-pic-container:hover .profile-photo {
+            opacity: 0.85;
+        }
+
+        .profile-pic-container:hover .profile-dots {
+            opacity: 1;
+        }
+
+        /* click animation */
+
+        .profile-pic-container.active .profile-pic-wrapper {
+            transform: translateX(-320px);
+        }
+
+        .profile-pic-container.active .profile-bio {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .profile-pic-wrapper:hover {
+            transform: scale(1.03);
+        }
+
+    </style>
+</head>
+<body>
+    <section class="home">
+        <div class="profile-pic-container">
+             <div class="profile-pic-wrapper">
+                <img src="MW_6429_.jpg" alt="Niels Bal" class="profile-photo">
+                <div class="profile-dots">⋯</div>
+            </div>        
+        <div class="profile-bio">
+            <p>Niels is a PhD researcher at the Vrije Universiteit Amsterdam within the department of Health Sciences. His research regards the quantitative study of disease syndemics, with a particular focus on methodological advancements. An exercise therapist by training, Niels obtained his master’s degree in Health Sciences in 2020, with a specialization in International Public Health. Besides his research activities, Niels teaches in epidemiology & (bio)statistics courses on both bachelor and master level.</p>
+        </div>
+        </div>
+        <h1>Niels Bal</h1>
+        <p>PhD Researcher | Syndemics, Quantitative Epidemiology & Biostatistics</p>
+        <div class="social-links">
+            <!-- LinkedIn -->
+            <a href="https://www.linkedin.com/in/your-profile" target="_blank" aria-label="LinkedIn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M512 96L127.9 96C110.3 96 96 110.5 96 128.3L96 511.7C96 529.5 110.3 544 127.9 544L512 544C529.6 544 544 529.5 544 511.7L544 128.3C544 110.5 529.6 96 512 96zM231.4 480L165 480L165 266.2L231.5 266.2L231.5 480L231.4 480zM198.2 160C219.5 160 236.7 177.2 236.7 198.5C236.7 219.8 219.5 237 198.2 237C176.9 237 159.7 219.8 159.7 198.5C159.7 177.2 176.9 160 198.2 160zM480.3 480L413.9 480L413.9 376C413.9 351.2 413.4 319.3 379.4 319.3C344.8 319.3 339.5 346.3 339.5 374.2L339.5 480L273.1 480L273.1 266.2L336.8 266.2L336.8 295.4L337.7 295.4C346.6 278.6 368.3 260.9 400.6 260.9C467.8 260.9 480.3 305.2 480.3 362.8L480.3 480z"/></svg>
+            </a>
+        
+            <!-- YouTube -->
+            <a href="https://www.youtube.com/your-channel" target="_blank" aria-label="YouTube">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M581.7 188.1C575.5 164.4 556.9 145.8 533.4 139.5C490.9 128 320.1 128 320.1 128C320.1 128 149.3 128 106.7 139.5C83.2 145.8 64.7 164.4 58.4 188.1C47 231 47 320.4 47 320.4C47 320.4 47 409.8 58.4 452.7C64.7 476.3 83.2 494.2 106.7 500.5C149.3 512 320.1 512 320.1 512C320.1 512 490.9 512 533.5 500.5C557 494.2 575.5 476.3 581.8 452.7C593.2 409.8 593.2 320.4 593.2 320.4C593.2 320.4 593.2 231 581.8 188.1zM264.2 401.6L264.2 239.2L406.9 320.4L264.2 401.6z"/></svg>
+            </a>
+        
+            <!-- ResearchGate -->
+            <a href="https://www.researchgate.net/profile/your-profile" target="_blank" aria-label="ResearchGate">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M96 96L96 544L544 544L544 96L96 96zM358.2 430.4C351.6 433.4 325 436.4 308.2 416.2C299 405.6 282.9 382.9 266 352.6C257.1 352.6 251.3 352.6 244.6 352L244.6 398.4C244.6 421.9 250.6 419.6 270.4 422.3L270.4 430.4C263.5 430.1 247.3 429.6 234.8 429.6C221.7 429.6 208.7 430.2 201.2 430.4L201.2 422.3C216.7 419.4 223.2 421 223.2 398.4L223.2 289C223.2 266.4 216.8 268 201.2 265.1L201.2 257C227 258 254.3 256.4 272.1 256.4C303.8 256.4 328 270.8 328 302C328 323.1 311.3 344.2 288.8 349.5C302.4 373.7 318.8 395.1 331 408.4C338.2 416.2 348.2 423.1 358.2 423.1L358.2 430.4zM381.1 295.4C357.8 295.4 348.9 279.7 348.9 263.2L348.9 231C348.9 218.8 357.7 200.6 382.9 200.6C408.1 200.6 413.3 218.5 413.3 218.5L402.6 225.7C402.6 225.7 397.1 213.2 382.9 213.2C375 213.2 363.2 220.5 363.2 232.9L363.2 259.7C363.2 273.1 369.8 283 381.1 283C395.2 283 402.6 272.1 402.6 256.2L384.7 256.2L384.7 245.5L415.1 245.5C415.1 266 419.8 295.4 381.1 295.4zM264.6 340.1C255.2 340.1 251 339.8 244.6 339.3L244.6 269.6C251 269 259.6 269 267.1 269C290.4 269 304.3 281.2 304.3 303.5C304.3 325.4 289.3 340.1 264.6 340.1z"/></svg>
+            </a>
+        </div>
+        
+    </section>
+
+    <section class="panels">
+        <div class="panel-nav">
+            <button class="panel-btn active" data-index="0">Activities</button>
+            <button class="panel-btn" data-index="1">Work</button>
+            <button class="panel-btn" data-index="2">Publications</button>
+            <button class="panel-btn" data-index="3">Courses</button>
+        </div>        
+        <div class="panel-container">
+            <!-- Activities panel -->
+            <div class="panel" data-panel="0">
+                <section class="activities">
+                    <div class="activities-container">
+                        <div class="activity-item">
+                            <div class="activity-header">
+                                <h3>Conference Oral Presentation</h3>
+                                <p>2025 | Society of Social Medicine Annual Meeting | Bradford, UK </p>
+                            </div>
+                            <div class="activity-content">
+                                <p>During this conference I briefly talked about my most recent publication in the Journal of Epidemiology and Community Health.</p>
+                                <a href="congress_files/ssm syndemics niels bal.pdf">Link to slides</a>
+                                <a href="https://doi.org/10.1136/jech-2025-SSMabstracts.4?urlappend=%3Futm_source%3Dresearchgate.net%26utm_medium%3Darticle" target="_blank" class="doi-link">
+                                    10.1136/jech-2025-SSMabstracts.4
+                                </a>
+                                <div class="lightbox-container">
+                                    <img src="activity_picture/SSM Conference 2025 - Bradford - [96dpi] -41.jpg" alt="ssm picture niels" class="activity-image">
+                                </div>
+                                <div class="lightbox-container">
+                                    <img src="activity_picture/SSM Conference 2025 - Bradford - [96dpi] -40.jpg" alt="ssm picture niels" class="activity-image">
+                                </div>
+                            </div>                                                        
+                        </div>
+                            <div class="activity-item">
+                                <div class="activity-header">
+                                    <h3>Conference Poster Presentation</h3>
+                                    <p>2024 | Amsterdam Public Health Annual Meeting | Amsterdam, NL </p>
+                                </div>
+                                <div class="activity-content">
+                                <p>During this event I held a poster presentation that presented preliminary findings of the first upcoming publication from my dissertation.</p>
+                                <div style="display: block; margin-bottom: 1rem;">
+                                    <a href="congress_files/aph_poster_presentation_niels_bal.pdf">Link to poster</a>
+                                </div>
+                                <div class="lightbox-container">
+                                    <img src="activity_picture/6da12b6f-8d95-4c94-a516-dbc37cf6e9ee.JPEG" alt="APHA poster presentation" class="activity-image">
+                                </div>
+                            </div>                                                        
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Work panel -->
+            <div class="panel" data-panel="1">
+                <section class="work">
+                    <div class="work-container">
+                        <div class="work-item">
+                            <div class="work-header">
+                                <h3>PhD researcher | Current Position</h3>
+                                <p>July 2023 - Present | Vrije Universiteit Amsterdam</p>
+                            </div>
+                            <div class="work-content">
+                                <p>My research regards the study of syndemics. The theory of syndemics describes two or more co-occurring diseases or health-related outcomes that interact together, resulting in a greater disease burden. Moreover, these disease interactions are found in different frequencies and vary in magnitude between specific populations. The objective of my line of research is to unravel the structural factors that contribute to the HIV Tuberculosis and HIV non-communicable disease syndemics in Sub-Saharan Africa..</p>
+                            </div>
+                        </div>
+                        <div class="work-item">
+                            <div class="work-header">
+                                <h3>Junior lecturer Epidemiology & Biostatistics</h3>
+                                <p>August 2020 - July 2023 | Vrije Universiteit Amsterdam</p>
+                            </div>
+                            <div class="work-content">
+                                <p>In this position I was responsible for teaching, coordinating and developing introductory level bachelor courses in epidemiology and biostatistics.</p>
+                            </div>
+                        </div>
+                        <div class="work-item">
+                            <div class="work-header">
+                                <h3>Health Sciences research intern</h3>
+                                <p>February 2020 - July 2020 | MCNV - For health and development in South East Asia</p>
+                            </div>
+                            <div class="work-content">
+                                <p>I initially designed a study on nutrition-sensitive agriculture in rural Nong District, Lao PDR, focusing on intermediate outcomes and short-term impact related to nutritional status of school children. When COVID-19 disrupted fieldwork, I adapted the study outline to analyse UNICEF population surveys on exclusive breastfeeding (EBF) trends. My analysis, published in Public Health Nutrition, revealed that region of residence was strongly associated with EBF and that this relationship changed over time. Over the study period, the mountainous northern region consistently showed the highest EBF rates, while the southern region made significant progress, ultimately surpassing the central region. By comparing prevalence maps with Laos’ geography, we demonstrated that mountainous areas—predominantly in Northern Lao PDR—had higher EBF rates, suggesting the influence of cultural or environmental factors.
+I presented these findings to the Laotian Ministry of Health, providing evidence to support targeted interventions. This experience deepened my expertise in adaptive research, complex survey analysis, and translating complex findings for policy audiences—foundations for my current work in syndemics and health equity.
+.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Publications panel -->
+            <div class="panel" data-panel="2">
+                <section class="publications">
+                    <div class="publications-container">
+                        <div class="publication-item">
+                            <div class="publication-header">
+                                <h3>Syndemic processes between non-communicable diseases and HIV within the Kingdom of Eswatini</h3>
+                                <h4 style="font-weight: normal;"><i>Bal N, Pell C, Theilmann M, Polman K, Hoekstra T, Cindzi B, Ginindza N, Dlamini S, Stehr L, Vivek Harkare H, Reis R, van Leth F</i></h4>
+                                <p style="font-weight: normal;">2025 | <i>Journal of Epidemiology & Community Health</i> | BMJ</p>
+                            </div>
+                            <div class="publication-content">
+                                <p>
+                                    This study explored syndemic interactions between HIV, diabetes, hypertension, and depression in Eswatini, using geospatial analysis and three-way interaction models (WHOPEN@Scale survey data). We found that HIV and diabetes synergistically interact, especially among individuals who are the sole household member aged ≥30 (RERI: 0.46, 95% CI 0.12–0.80) or bereaved (RERI: 0.44, 95% CI 0.02–0.86), with geospatial clustering of comorbid depression near urban centers. While other disease pairs did not show syndemic patterns, comorbidity still worsened health outcomes, underscoring the need for integrated, context-sensitive care—particularly for chronic, stigmatized conditions like HIV and diabetes.
+                                </p>
+                                <a href="https://doi.org/10.1136/jech-2025-223753" target="_blank" class="publication-link">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/DOI_logo.svg" class="doi-icon" alt="DOI">
+                                    DOI: 10.1136/jech-2025-223753
+                                </a>
+                            </div>
+                        </div>
+                        <div class="publication-item">
+                            <div class="publication-header">
+                                <h3>How do the determinants of exclusive breast-feeding change over time? A multi-survey quasi-longitudinal study in Lao People’s Democratic Republic</h3>
+                                <h4 style="font-weight: normal;"><i>Bal N, Boulom S, van Brakel K, Kounnavong S, Essink D.</i></h4>
+                                <p>2022 | <i>Public Health Nutrition</i> | Cambridge University Press</p>
+                            </div>
+                            <div class="publication-content">
+                                <p>This study analyzed trends and determinants of exclusive breastfeeding (EBF) in Lao PDR from 2000 to 2017, using quasi-longitudinal data from national surveys. EBF rates rose from 19% to 45% over the period. Key factors influencing EBF included region, ethnicity, wealth, and child age, with notable improvements in the southern region and among the Lao-Thai ethnic group. Surprisingly, antenatal care visits showed no association with EBF. The findings highlight the importance of monitoring evolving socio-demographic influences to inform public health policy in transitioning countries.</p>
+                                <a href="https://doi.org/10.1017/S1368980022001380" target="_blank" class="publication-link">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/DOI_logo.svg" class="doi-icon" alt="DOI">
+                                    DOI: 10.1017/S1368980022001380
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Courses panel -->
+            <div class="panel" data-panel="3">
+                <section class="courses">
+                    <div class="courses-container">
+                        <div class="course-item">
+                            <div class="course-header">
+                                <h3>Missing data: consequences and solutions</h3>
+                                <p>2026 | EpidM | Amsterdam UMC</p>
+                            </div>
+                            <div class="course-content">
+                                <p>This course focused on the different patterns and causes of missing data in epidemiological research. It also covered methodologies that can be used as solution for the problem of missing data.</p>
+                                <a href="https://www.epidm.nl/en/course/missing-data-consequences-and-solutions/">Course webpage</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    /* ---------------- PANEL SYSTEM ---------------- */
+
+    const panels = document.querySelectorAll('.panel');
+    const navItems = document.querySelectorAll('.panel-btn');
+    let currentPanel = 0;
+
+    // Initialize panels
+    panels.forEach((panel, index) => {
+        if (index === currentPanel) {
+            panel.style.transform = 'translateX(0)';
+            panel.style.zIndex = '1';
+        } else {
+            panel.style.transform = 'translateX(100%)';
+            panel.style.zIndex = '0';
+        }
+    });
+
+    navItems[currentPanel].classList.add('active');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            switchPanel(index);
+        });
+    });
+
+    function switchPanel(index) {
+
+        if (index === currentPanel) return;
+
+        const outgoing = panels[currentPanel];
+        const incoming = panels[index];
+        const direction = index > currentPanel ? -1 : 1;
+
+        incoming.style.transition = "none";
+        incoming.style.transform = `translateX(${direction * -100}%)`;
+        incoming.style.zIndex = "2";
+
+        requestAnimationFrame(() => {
+
+            incoming.style.transition = "transform 0.5s ease";
+            outgoing.style.transition = "transform 0.5s ease";
+
+            outgoing.style.transform = `translateX(${direction * 100}%)`;
+            incoming.style.transform = "translateX(0)";
+        });
+
+        navItems[currentPanel].classList.remove('active');
+        navItems[index].classList.add('active');
+
+        currentPanel = index;
+    }
+
+
+    /* ---------------- EXPANDABLE ITEMS ---------------- */
+
+    document.querySelectorAll('.activity-item, .work-item, .publication-item, .course-item').forEach(item => {
+
+        const header = item.querySelector(
+            '.activity-header, .work-header, .publication-header, .course-header'
+        );
+
+        header.addEventListener('click', function(e) {
+            e.stopPropagation();
+            item.classList.toggle('expanded');
+        });
+
+    });
+
+
+    /* ---------------- LIGHTBOX ---------------- */
+
+    document.querySelectorAll('.lightbox-container').forEach(container => {
+
+        const img = container.querySelector('.activity-image');
+
+        const overlay = document.createElement('div');
+        overlay.className = 'lightbox-overlay';
+        overlay.innerHTML = `<div class="lightbox-content">${img.outerHTML}</div>`;
+
+        document.body.appendChild(overlay);
+
+        container.addEventListener('click', () => {
+            overlay.classList.add('active');
+        });
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+            }
+        });
+
+    });
+
+
+    /* ---------------- PROFILE PICTURE INTERACTION ---------------- */
+
+    const profilePicContainer = document.querySelector('.profile-pic-container');
+
+    if (profilePicContainer) {
+        profilePicContainer.addEventListener('click', function () {
+            this.classList.toggle('active');
+        });
+    }
+
+});
+</script>  
+    
+</body>
+</html>
